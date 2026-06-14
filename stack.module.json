@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "id": "bookstack",
+  "repo": "bookstack-stack-module",
+  "runtimeId": "bookstack",
+  "lifecycle": "active",
+  "dependencies": [
+    "stack-foundation"
+  ],
+  "overlays": [
+    "stack.compose/bookstack.yml",
+    "stack.config/bookstack"
+  ]
+}
