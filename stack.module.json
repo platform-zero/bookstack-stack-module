@@ -17,7 +17,8 @@
   "smokeUnsupportedReason": "requires generated bundle context, deployed networking, secrets, or service dependencies",
   "overlays": [
     "stack.compose/bookstack.yml",
-    "stack.config/bookstack"
+    "stack.config/bookstack",
+    "stack.containers/test-runner/playwright-tests/tests/deep/oidc/bookstack.spec.ts"
   ],
   "testAssets": []
 }
