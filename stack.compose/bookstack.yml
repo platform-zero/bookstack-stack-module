@@ -52,8 +52,6 @@ services:
     restart: unless-stopped
     mem_limit: ${BOOKSTACK_PROCEDURAL_DOCS_MEMORY_LIMIT:-512M}
     cpus: ${BOOKSTACK_PROCEDURAL_DOCS_CPU_LIMIT:-0.5}
-    labels:
-      - "com.centurylinklabs.watchtower.enable=false"
     networks:
       caddy:
     depends_on:

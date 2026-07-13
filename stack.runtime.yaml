@@ -1,0 +1,75 @@
+---
+schemaVersion: 1
+module: "bookstack"
+target: "apps"
+services:
+  bookstack:
+    image: "lscr.io/linuxserver/bookstack:version-v24.12.1"
+    containerName: "bookstack"
+    lifecycle: "daemon"
+    updatePolicy: "registry"
+    placement: "rootful"
+    dependencies:
+      caddy: "started"
+      mariadb: "healthy"
+    environment:
+      PUID: "${DOCKER_USER_ID:-1000}"
+      PGID: "${DOCKER_GROUP_ID:-1000}"
+      TZ: "UTC"
+      APP_URL: "https://bookstack.${DOMAIN}"
+      APP_KEY: "${BOOKSTACK_APP_KEY}"
+      BOOKSTACK_API_TOKEN_ID: "${BOOKSTACK_API_TOKEN_ID}"
+      BOOKSTACK_API_TOKEN_SECRET: "${BOOKSTACK_API_TOKEN_SECRET}"
+      DB_HOST: "mariadb"
+      DB_PORT: 3306
+      DB_USERNAME: "bookstack"
+      DB_PASSWORD: "${MARIADB_BOOKSTACK_PASSWORD}"
+      DB_DATABASE: "bookstack"
+      BOOKSTACK_OAUTH_SECRET: "${BOOKSTACK_OAUTH_SECRET}"
+      API_REQUESTS_PER_MIN: "${BOOKSTACK_API_REQUESTS_PER_MIN:-1200}"
+      APP_DEFAULT_DARK_MODE: "true"
+      SSL_CERT_FILE: "/ca/caddy-ca.crt"
+      CURL_CA_BUNDLE: "/ca/caddy-ca.crt"
+    networks:
+      caddy: null
+      mariadb: null
+    volumes:
+    - "bookstack_data:/config"
+    - "./configs/bookstack/init:/custom-cont-init.d:ro"
+    - "caddy_ca:/ca:ro"
+    health:
+      test:
+      - "CMD-SHELL"
+      - "! ps -ef | grep -q \"[p]hp /app/www/artisan migrate --force\" && \\\ncurl\
+        \ -fsS http://127.0.0.1:80/login >/dev/null\n"
+      interval: "30s"
+      timeout: "10s"
+      retries: 10
+      start_period: "900s"
+    restart: "unless-stopped"
+  bookstack-procedural-docs:
+    image: "lscr.io/linuxserver/bookstack:version-v24.12.1"
+    containerName: "bookstack-procedural-docs"
+    lifecycle: "daemon"
+    updatePolicy: "registry"
+    placement: "rootful"
+    dependencies:
+      bookstack: "started"
+    environment:
+      BOOKSTACK_URL: "http://bookstack:80"
+      BOOKSTACK_PUBLIC_URL: "https://bookstack.${DOMAIN}"
+      BOOKSTACK_API_TOKEN_ID: "${BOOKSTACK_API_TOKEN_ID}"
+      BOOKSTACK_API_TOKEN_SECRET: "${BOOKSTACK_API_TOKEN_SECRET}"
+      BOOKSTACK_PROCEDURAL_DOCS_BOOK: "Procedural Docs"
+      BOOKSTACK_PROCEDURAL_DOC_REFRESH_SECONDS: "300"
+    networks:
+      caddy: null
+    volumes:
+    - "./configs/bookstack:/config/bookstack:ro"
+    ephemeralImageVolumes:
+    - "/config"
+    entrypoint:
+    - "/config/bookstack/procedural-docs-loop.sh"
+    restart: "unless-stopped"
+networks: {}
+volumes: {}
