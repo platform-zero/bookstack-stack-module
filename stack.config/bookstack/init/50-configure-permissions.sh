@@ -1,9 +1,10 @@
 #!/usr/bin/with-contenv bash
+# shellcheck shell=bash
 set -euo pipefail
 
 ENV_FILE="/config/www/.env"
 echo "Waiting for BookStack .env file..."
-for i in {1..60}; do
+for _ in {1..60}; do
     if [ -f "$ENV_FILE" ]; then
         break
     fi
@@ -34,7 +35,7 @@ echo "  Host: $DB_HOST"
 echo "  Database: $DB_DATABASE"
 echo "  User: $DB_USERNAME"
 echo "Waiting for database connection..."
-for i in {1..30}; do
+for _ in {1..30}; do
     if mariadb -h "$DB_HOST" -u "$DB_USERNAME" -p"$DB_PASSWORD" --protocol=TCP "$DB_DATABASE" -e "SELECT 1" >/dev/null 2>&1; then
         echo "Database connection established"
         break
@@ -186,7 +187,7 @@ if [ "$CONFIGURED" != "0" ]; then
     exit 0
 fi
 echo "Configuring BookStack role permissions..."
-mariadb -h "$DB_HOST" -u "$DB_USERNAME" -p"$DB_PASSWORD" --protocol=TCP "$DB_DATABASE" <<'EOF'
+if mariadb -h "$DB_HOST" -u "$DB_USERNAME" -p"$DB_PASSWORD" --protocol=TCP "$DB_DATABASE" <<'EOF'
 -- Ensure Admin role exists and has full permissions
 UPDATE roles
 SET
@@ -319,7 +320,7 @@ ON DUPLICATE KEY UPDATE value = '1';
 INSERT INTO settings (setting_key, value) VALUES ('permissions_configured_bookstack_hardening_v2', '1')
 ON DUPLICATE KEY UPDATE value = '1';
 EOF
-if [ $? -eq 0 ]; then
+then
     echo "BookStack permissions configured successfully!"
     echo "- Admin role: Full read/write access everywhere"
     echo "- Editor role (default): Create/edit own content, read public content"

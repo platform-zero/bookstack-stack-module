@@ -1,7 +1,8 @@
 #!/usr/bin/with-contenv bash
+# shellcheck shell=bash
 set -uo pipefail
 echo "[BookStack API Token] Waiting for BookStack initialization..."
-for i in {1..60}; do
+for _ in {1..60}; do
     if [ -f "/app/www/artisan" ] && [ -f "/config/www/.env" ]; then
         echo "[BookStack API Token] BookStack is ready"
         break
@@ -25,11 +26,12 @@ if ! printf '%s' "$BOOKSTACK_TOKEN_TTL_DAYS" | grep -Eq '^[0-9]+$'; then
     echo "[BookStack API Token] ERROR: BOOKSTACK_API_TOKEN_TTL_DAYS must be a positive integer"
     exit 1
 fi
+# shellcheck disable=SC2016
 BOOKSTACK_TOKEN_EXPIRES_AT="${BOOKSTACK_API_TOKEN_EXPIRES_AT:-$(BOOKSTACK_TOKEN_TTL_DAYS="$BOOKSTACK_TOKEN_TTL_DAYS" php -r '$days = max(1, (int) getenv("BOOKSTACK_TOKEN_TTL_DAYS")); echo (new DateTimeImmutable("now", new DateTimeZone("UTC")))->modify("+{$days} days")->format("Y-m-d H:i:s");')}"
 echo "[BookStack API Token] Using build-time generated API token"
 echo "[BookStack API Token] Token identifier loaded"
 echo "[BookStack API Token] Token expires at: $BOOKSTACK_TOKEN_EXPIRES_AT UTC"
-cd /app/www
+cd /app/www || exit
 echo "[BookStack API Token] Ensuring migrations are up to date..."
 php artisan migrate --force >/dev/null 2>&1 || true
 HAS_API_TOKENS=$(php artisan tinker --execute="echo \\Illuminate\\Support\\Facades\\Schema::hasTable('api_tokens') ? '1' : '0';" 2>/dev/null | tail -1)

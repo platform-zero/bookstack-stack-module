@@ -1,6 +1,8 @@
 #!/usr/bin/with-contenv bash
+# shellcheck shell=bash
 ENV_FILE_APP="/app/www/.env"
 ENV_FILE_CONFIG="/config/www/.env"
+ENV_FILE=""
 
 CA_SRC="/ca/caddy-ca.crt"
 CA_DST="/usr/local/share/ca-certificates/caddy-ca.crt"
@@ -14,7 +16,7 @@ if [ -f "$CA_SRC" ]; then
     fi
 fi
 echo "Waiting for BookStack persistent .env file to be created..."
-for i in {1..60}; do
+for _ in {1..60}; do
     if [ -f "$ENV_FILE_CONFIG" ]; then
         echo "Found persistent .env file at $ENV_FILE_CONFIG"
         ENV_FILE="$ENV_FILE_CONFIG"
@@ -69,6 +71,7 @@ if [ -n "$BOOKSTACK_OAUTH_SECRET" ]; then
     grep -q "^OIDC_CLIENT_SECRET=" "$ENV_FILE" || echo "OIDC_CLIENT_SECRET=$BOOKSTACK_OAUTH_SECRET" >> "$ENV_FILE"
 fi
 sed -i "s|^OIDC_ISSUER=.*|OIDC_ISSUER=https://keycloak.\${APP_URL#https://bookstack.}/realms/webservices|" "$ENV_FILE"
+# shellcheck disable=SC2016
 grep -q "^OIDC_ISSUER=" "$ENV_FILE" || echo 'OIDC_ISSUER=https://keycloak.${APP_URL#https://bookstack.}/realms/webservices' >> "$ENV_FILE"
 if [ -n "$APP_URL" ]; then
     DOMAIN="${APP_URL#https://bookstack.}"
@@ -98,13 +101,15 @@ grep -q "^OIDC_TOKEN_ENDPOINT_AUTH_METHOD=" "$ENV_FILE" || echo "OIDC_TOKEN_ENDP
 echo "BookStack .env file updated successfully with OIDC authentication"
 if [ -f "/app/www/artisan" ]; then
     echo "Clearing Laravel configuration cache..."
-    cd /app/www && php artisan config:clear 2>/dev/null || true
-    cd /app/www && php artisan cache:clear 2>/dev/null || true
+    if cd /app/www; then
+        php artisan config:clear 2>/dev/null || true
+        php artisan cache:clear 2>/dev/null || true
+    fi
     echo "Laravel cache cleared"
 fi
 if [ -f "/app/www/artisan" ]; then
     echo "Checking if database migrations are needed..."
-    cd /app/www
+    cd /app/www || exit
     if ! php artisan migrate:status >/dev/null 2>&1; then
         echo "Running database migrations..."
         php artisan migrate --force

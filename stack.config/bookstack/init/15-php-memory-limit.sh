@@ -1,4 +1,5 @@
 #!/usr/bin/with-contenv bash
+# shellcheck shell=bash
 set -eu
 
 PHP_LOCAL_INI="/config/php/php-local.ini"

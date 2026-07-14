@@ -1,4 +1,5 @@
 #!/usr/bin/with-contenv bash
+# shellcheck shell=bash
 set -euo pipefail
 
 TARGET_FILE="/app/www/app/Access/Oidc/OidcService.php"

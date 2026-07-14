@@ -6,7 +6,7 @@
 - Lifecycle: `active`
 
 ## Owned overlays
-- `stack.compose/bookstack.yml`
+- `stack.runtime.yaml`
 - `stack.config/bookstack`
 
 ## Dependencies

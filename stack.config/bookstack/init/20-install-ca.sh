@@ -1,4 +1,5 @@
 #!/usr/bin/with-contenv bash
+# shellcheck shell=bash
 set -e
 
 CA_SRC="/ca/caddy-ca.crt"
