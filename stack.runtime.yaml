@@ -13,8 +13,8 @@ services:
       caddy: "started"
       mariadb: "healthy"
     environment:
-      PUID: "${CONTAINER_USER_ID:-${DOCKER_USER_ID:-1000}}"
-      PGID: "${CONTAINER_GROUP_ID:-${DOCKER_GROUP_ID:-1000}}"
+      PUID: "${CONTAINER_USER_ID:-${CONTAINER_USER_ID:-1000}}"
+      PGID: "${CONTAINER_GROUP_ID:-${CONTAINER_GROUP_ID:-1000}}"
       TZ: "UTC"
       APP_URL: "https://bookstack.${DOMAIN}"
       APP_KEY: "${BOOKSTACK_APP_KEY}"

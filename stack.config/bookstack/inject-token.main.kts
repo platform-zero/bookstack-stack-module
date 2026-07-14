@@ -43,7 +43,7 @@ fun run(vararg cmd: String): String {
 fun detectRoot(): File {
     var current = File(".").canonicalFile
     while (true) {
-        val repoRoot = current.resolve("runtime.contract").isDirectory && current.resolve("scripts").isDirectory
+        val repoRoot = current.resolve("runtime.overlays").isDirectory && current.resolve("scripts").isDirectory
         val distRoot = current.resolve("bundle.json").isFile && current.resolve("runtime").isDirectory
         if (repoRoot || distRoot) return current
         current = current.parentFile ?: return File(".").canonicalFile
