@@ -13,6 +13,22 @@ import java.time.Instant
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
+fun containerCommand(vararg args: String): Array<String> {
+    val containerCli = System.getenv("STACK_CONTAINER_CLI")?.trim()?.takeIf { it.isNotEmpty() } ?: "podman"
+    val containerName = System.getenv("STACK_BOOKSTACK_CONTAINER_NAME")?.trim()?.takeIf { it.isNotEmpty() } ?: "bookstack"
+    val containerHost = when (containerCli) {
+        "podman" -> System.getenv("CONTAINER_HOST")?.trim()?.takeIf { it.isNotEmpty() } ?: "unix:///run/podman/podman.sock"
+        else -> null
+    }
+    val command = mutableListOf(containerCli)
+    if (containerCli == "podman" && containerHost != null) {
+        command += listOf("--remote", "--url", containerHost)
+    }
+    command += listOf("exec", containerName)
+    command += args
+    return command.toTypedArray()
+}
+
 fun run(vararg cmd: String): String {
     val pb = ProcessBuilder(*cmd).redirectErrorStream(true)
     val p = pb.start()
@@ -81,23 +97,26 @@ fun main() {
         echo ${'$'}userId;
     """.trimIndent().replace("\n", " ")
     val userId = run(
-        "docker", "exec", "bookstack",
-        "php", "/app/www/artisan", "tinker", "--execute=$ensureAutomationUserCmd"
+        *containerCommand(
+            "php", "/app/www/artisan", "tinker", "--execute=$ensureAutomationUserCmd"
+        )
     ).trim()
 
     println("[INFO] Using automation user ID: $userId")
 
     // Check if token already exists
     val existingCheck = run(
-        "docker", "exec", "bookstack",
-        "php", "/app/www/artisan", "tinker", "--execute=echo BookStack\\Api\\ApiToken::where('name', 'webservices Automation')->count();"
+        *containerCommand(
+            "php", "/app/www/artisan", "tinker", "--execute=echo BookStack\\Api\\ApiToken::where('name', 'webservices Automation')->count();"
+        )
     ).trim()
 
     if (existingCheck != "0") {
         println("[WARN] Token 'webservices Automation' already exists, removing old one...")
         run(
-            "docker", "exec", "bookstack",
-            "php", "/app/www/artisan", "tinker", "--execute=BookStack\\Api\\ApiToken::where('name', 'webservices Automation')->delete();"
+            *containerCommand(
+                "php", "/app/www/artisan", "tinker", "--execute=BookStack\\Api\\ApiToken::where('name', 'webservices Automation')->delete();"
+            )
         )
     }
 
@@ -112,8 +131,9 @@ fun main() {
         "echo 'Token created successfully';"
 
     val result = run(
-        "docker", "exec", "bookstack",
-        "php", "/app/www/artisan", "tinker", "--execute=$createCmd"
+        *containerCommand(
+            "php", "/app/www/artisan", "tinker", "--execute=$createCmd"
+        )
     )
 
     println("[SUCCESS] $result")
