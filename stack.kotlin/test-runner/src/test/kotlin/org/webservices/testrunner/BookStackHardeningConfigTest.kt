@@ -62,7 +62,7 @@ class BookStackHardeningConfigTest {
     }
 
     private fun repoFileText(relativePath: String): String =
-        Files.readString(repoRoot().resolve(relativePath))
+        TestSourceFiles.moduleText("bookstack", relativePath)
 
     private fun repoRoot(): Path {
         var current = Path.of("").toAbsolutePath()
