@@ -50,10 +50,10 @@ suspend fun TestRunner.bookStackIntegrationTests() = suite("BookStack Integratio
         }
     }
 
-    test("BookStack API is accessible when credentials are configured") {
+    test("BookStack content API rejects unauthenticated access") {
         val response = client.getRawResponse("${endpoints.bookstack}/api/books")
-        require(response.status == HttpStatusCode.OK || response.status == HttpStatusCode.Unauthorized) {
-            "BookStack API did not respond on /api/books: HTTP ${response.status.value}"
+        require(response.status in setOf(HttpStatusCode.Unauthorized, HttpStatusCode.Forbidden)) {
+            "BookStack content API must reject an unauthenticated request: HTTP ${response.status.value}"
         }
     }
 

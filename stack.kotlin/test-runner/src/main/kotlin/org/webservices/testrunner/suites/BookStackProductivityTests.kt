@@ -44,9 +44,4 @@ test("BookStack web interface loads") {
         requireOkOrRedirectResponse(response, "BookStack API docs")
     }
 
-    test("BookStack health check responds") {
-        val response = getBookStackResponse("/")
-            ?: fail("BookStack unavailable after retries while checking health")
-        requireOkOrRedirectResponse(response, "BookStack health page")
-    }
 }
