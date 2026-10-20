@@ -2,6 +2,10 @@
 # shellcheck shell=bash
 set -euo pipefail
 
+# Every bootstrap query must use the same endpoint as Laravel, including a
+# cross-domain/isolated publisher. Quoting preserves the actual argv contract.
+mariadb() { command mariadb "--port=${DB_PORT:-3306}" "$@"; }
+
 ENV_FILE="/config/www/.env"
 echo "Waiting for BookStack .env file..."
 for _ in {1..60}; do
@@ -25,6 +29,9 @@ if [ -z "${DB_USERNAME:-}" ]; then
 fi
 if [ -z "${DB_PASSWORD:-}" ]; then
     DB_PASSWORD=$(grep "^DB_PASSWORD=" "$ENV_FILE" | cut -d'=' -f2)
+fi
+if [ -z "${DB_PORT:-}" ]; then
+    DB_PORT=$(grep "^DB_PORT=" "$ENV_FILE" | cut -d'=' -f2 || true)
 fi
 if [ -z "${DB_HOST:-}" ] || [ -z "${DB_DATABASE:-}" ] || [ -z "${DB_USERNAME:-}" ] || [ -z "${DB_PASSWORD:-}" ]; then
     echo "ERROR: Could not extract database credentials from environment or .env"
