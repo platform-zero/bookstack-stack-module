@@ -4,7 +4,7 @@ module: "bookstack"
 target: "apps"
 services:
   bookstack:
-    image: "lscr.io/linuxserver/bookstack:version-v24.12.1"
+    image: "lscr.io/linuxserver/bookstack:version-v24.12.1@sha256:5e93ca3b8c73299420815141951ccf24e7bfce5c02cec5d6ad0a2b357afdfcb8"
     containerName: "bookstack"
     lifecycle: "daemon"
     updatePolicy: "registry"
@@ -50,7 +50,7 @@ services:
       start_period: "900s"
     restart: "unless-stopped"
   bookstack-procedural-docs:
-    image: "lscr.io/linuxserver/bookstack:version-v24.12.1"
+    image: "lscr.io/linuxserver/bookstack:version-v24.12.1@sha256:5e93ca3b8c73299420815141951ccf24e7bfce5c02cec5d6ad0a2b357afdfcb8"
     containerName: "bookstack-procedural-docs"
     lifecycle: "daemon"
     updatePolicy: "registry"
